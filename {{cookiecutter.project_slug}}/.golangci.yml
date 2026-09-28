@@ -1,0 +1,15 @@
+version: "2"
+
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - misspell
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+run:
+  timeout: 5m

@@ -1,0 +1,21 @@
+[tools]
+python = "3.13"
+"pipx:cookiecutter" = "latest"
+node = "24"
+go = "1.26"
+"ubi:golangci/golangci-lint" = "latest"
+
+[tasks.render]
+description = "Render the template with defaults into /tmp/app-template-render"
+run = "rm -rf /tmp/app-template-render && cookiecutter --no-input . -o /tmp/app-template-render project_name='Demo App'"
+
+[tasks.verify]
+description = "Render, then build/test/lint the generated project end to end"
+depends = ["render"]
+run = """
+cd /tmp/app-template-render/demo-app
+mise trust -y . >/dev/null
+mise run build
+mise run test
+mise run lint
+"""
