@@ -67,7 +67,7 @@ registry) belong in the generated project, not the template.
 Render locally to verify changes:
 
 ```sh
-cookiecutter --no-input -o /tmp/render-test project_name="Demo App"
+cookiecutter --no-input . -o /tmp/render-test project_name="Demo App"
 cd /tmp/render-test/demo-app
 go build ./... && go test ./...
 cd web && npm ci && npm run build && npm test && npm run lint

@@ -50,4 +50,4 @@ run: docker
 
 ## clean: remove build artifacts
 clean:
-	rm -rf bin web/dist internal/ui/dist/assets internal/ui/dist/index.html.tmp
+	rm -rf bin web/dist internal/ui/dist/assets
