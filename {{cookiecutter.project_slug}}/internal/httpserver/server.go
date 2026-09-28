@@ -71,7 +71,7 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	_ = json.NewEncoder(w).Encode(v)
 }
 
-// requestLog is minimal access logging; swap for real middleware as needed.
+// requestLog logs each request with method, path, status, and duration.
 func requestLog(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()

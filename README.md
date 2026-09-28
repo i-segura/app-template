@@ -29,9 +29,6 @@ with one binary.
 | `node_version`   | `24`                                     | Feeds mise.toml `[tools]` + Dockerfile + npm engines |
 | `go_version`     | `1.26`                                   | Feeds mise.toml `[tools]` + go.mod + Dockerfile   |
 
-Kept intentionally minimal — opinionated extras (databases, auth, CI/CD to a
-registry) belong in the generated project, not the template.
-
 ## What the generated project includes
 
 - **Go backend** (`cmd/app` + `internal/{config,httpserver,ui}`): stdlib
@@ -47,34 +44,23 @@ registry) belong in the generated project, not the template.
 - **Dockerfile**: 3 stages (node builds frontend → go builds binary →
   alpine + tini, non-root uid 65532, `HEALTHCHECK` on `/live`).
 - **mise**: `mise.toml` pins the toolchain (`[tools]`: Go, Node,
-  golangci-lint) **and** defines all tasks (`[tasks]`: `dev`, `build`, `test`,
-  `lint`, `fmt`, `check`, `docker`, `run`, `clean`). One tool replaces the
-  Makefile *and* the "install these versions yourself" README section.
+  golangci-lint) and defines all tasks (`[tasks]`: `dev`, `build`, `test`,
+  `lint`, `fmt`, `check`, `docker`, `run`, `clean`).
 - **Quality gates**: `go test` with `httptest` handler tests, Vitest +
   Testing Library example tests, ESLint (flat config) + Prettier,
   golangci-lint v2 config.
 - **GitHub Actions CI**: Go lint+test (race, coverage), frontend lint+test,
   and a `docker build` validation job on push/PR.
 
-## Why these defaults
+## Design decisions
 
-- **Single binary/container** — one artifact to deploy, no CORS, no nginx
-  sidecar; the embed pattern is proven in production apps.
-- **stdlib `net/http` over gin** — a template should teach the platform;
-  ServeMux method patterns cover what a small API needs. Swap in a router
-  later if you need middleware-heavy routing.
-- **No database in the template** — every app picks its own storage; the
-  README shows where to add one.
-- **Node 24 / Go 1.26** — current LTS/stable lines at template-writing time;
-  both are template variables and both land in the generated `mise.toml`
-  `[tools]`, so the pinned versions are *enforced*, not just documented.
-- **mise over make** — mise is make plus a toolchain manager: `[tools]` pins
-  Go/Node/golangci-lint per directory (`mise install` reproduces the exact
-  environment), `[tasks]` replaces the Makefile, and task `depends` gives
-  free parallelism (`test` runs Go and frontend suites concurrently). One
-  manifest, no drift between "what the README says to install" and "what the
-  CI image has".
-- **Vitest over Jest** — first-class Vite integration, no babel config.
+- Single binary/container: one deployable artifact, no CORS, no reverse proxy.
+- stdlib `net/http` with `ServeMux` method patterns; a router can be added
+  later if middleware-heavy routing is needed.
+- No database: storage is app-specific.
+- mise instead of make: `[tools]` pins the toolchain per directory,
+  `[tasks]` defines the commands, `depends` runs tasks in parallel.
+- Vitest for frontend tests: first-class Vite integration.
 
 ## Hacking on the template
 

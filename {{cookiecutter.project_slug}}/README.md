@@ -11,11 +11,8 @@ Just [mise](https://mise.jdx.dev) — everything else is pinned in `mise.toml`:
 
 ```sh
 curl https://mise.run | sh   # or: brew install mise / apt etc.
-mise install                 # installs Go {{ cookiecutter.go_version }}, Node {{ cookiecutter.node_version }}, golangci-lint — for THIS directory only
+mise install                 # installs Go {{ cookiecutter.go_version }}, Node {{ cookiecutter.node_version }}, golangci-lint for this directory
 ```
-
-No "install Go, then Node, then hope they match the README" step: `mise.toml`
-declares the exact toolchain and mise provides it per-directory.
 
 ## Quickstart
 
@@ -43,17 +40,14 @@ mise run run       # build image and run it on :8080
 mise run clean     # remove build artifacts
 ```
 
-## mise in 60 seconds (newcomers)
+## mise notes
 
-- **`mise.toml`** is a per-directory manifest: `[tools]` pins exact versions
-  (Go, Node, golangci-lint here); `[tasks.*]` defines the project's commands —
-  a Makefile replacement that also guarantees the toolchain.
-- **`mise tasks`** shows every task with its description.
-- First run in a new repo shows a **trust prompt** (`mise trust`) — mise only
-  executes config you've trusted, like a git safe-directory check.
-- Inside a mise directory, `go`, `node`, `npm`, `golangci-lint` are already the
-  pinned versions on your PATH, so plain `go test ./...` works too. Tasks with
-  `depends` run in parallel (that's why `test` and `lint` are fast).
+- `mise.toml` pins the toolchain in `[tools]` and defines project commands in
+  `[tasks.*]`.
+- `mise tasks` lists every task with its description.
+- First run in a new repo requires `mise trust`.
+- Inside the directory, `go`, `node`, `npm`, and `golangci-lint` on PATH are
+  the pinned versions. Tasks with `depends` run in parallel.
 
 ## How the single-container pattern works
 
@@ -91,9 +85,13 @@ Dockerfile               node -> go -> alpine (non-root, tini)
 - Add API handlers in `internal/httpserver` under the `/api/v1` pattern.
 - Add a database: create `internal/db`, add `DATABASE_URL` to
   `internal/config`, and a `/ready` probe that pings it.
-- CI (`.github/workflows/ci.yml`) runs Go lint+test, frontend lint+test, and
-  a `docker build` validation on every push/PR. CI deliberately uses
-  `actions/setup-go` / `actions/setup-node` reading the same versions instead
-  of the mise action, so the pipeline never depends on mise being installed on
-  GitHub runners — `mise.toml` keeps local dev pinned, CI stays
-  self-sufficient.
+
+## Design decisions
+
+- Single binary/container: one deployable artifact, no CORS, no reverse proxy.
+- stdlib `net/http` with `ServeMux` method patterns; a router can be added
+  later if middleware-heavy routing is needed.
+- No database: storage is app-specific.
+- CI uses `actions/setup-go` / `actions/setup-node` reading the pinned
+  versions rather than the mise action, so the pipeline does not depend on
+  mise on GitHub runners.

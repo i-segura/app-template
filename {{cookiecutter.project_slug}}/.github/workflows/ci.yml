@@ -1,8 +1,4 @@
 name: CI
-# CI is intentionally self-sufficient: setup-go/setup-node read the pinned
-# versions (go.mod / web/package.json) instead of installing mise, so the
-# pipeline never depends on mise being available on GitHub runners.
-# mise.toml pins the same toolchain for local dev.
 
 on:
   push:

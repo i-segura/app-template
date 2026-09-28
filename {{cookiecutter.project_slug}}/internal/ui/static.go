@@ -11,8 +11,6 @@ import (
 var dist embed.FS
 
 // Assets returns the embedded frontend build rooted at dist/.
-// A placeholder dist/index.html is committed so `go build` and `go test`
-// work before the frontend has ever been built.
 func Assets() fs.FS {
 	sub, err := fs.Sub(dist, "dist")
 	if err != nil {

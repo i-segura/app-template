@@ -1,7 +1,4 @@
-# app-template — dogfood the toolchain this template generates.
-# `mise install` here gives you everything needed to render and verify the
-# template: cookiecutter, plus the same Go/Node lines the generated project
-# pins (defaults mirror cookiecutter.json).
+# Pins cookiecutter plus the Go/Node lines the generated project uses.
 
 [tools]
 python = "3.13"

@@ -1,5 +1,4 @@
 // Package config loads application configuration from environment variables.
-// Plain os.Getenv + defaults: no flags library, no viper. Keep it boring.
 package config
 
 import (

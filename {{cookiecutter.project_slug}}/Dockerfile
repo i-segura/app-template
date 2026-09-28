@@ -15,8 +15,7 @@ WORKDIR /src
 COPY go.mod ./
 RUN go mod download
 COPY . .
-# Replace the placeholder with the real frontend build before compiling,
-# so go:embed picks it up.
+# The real frontend build replaces the placeholder so go:embed picks it up.
 COPY --from=web /app/web/dist ./internal/ui/dist
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/app ./cmd/app
 
@@ -25,10 +24,7 @@ FROM alpine:3.21
 RUN apk add --no-cache ca-certificates tini tzdata \
  && adduser -D -u 65532 appuser
 USER appuser
-# The app listens on $PORT (default 8080). EXPOSE declares the default; the
-# healthcheck is shell-form and Docker does not expand variables in it at
-# build time, so $PORT is resolved by the shell at runtime and
-# `docker run -e PORT=...` keeps the probe pointed at the live port.
+# Shell-form HEALTHCHECK: $PORT is resolved by the shell at runtime.
 ARG PORT=8080
 ENV PORT=${PORT}
 EXPOSE ${PORT}
