@@ -1,10 +1,6 @@
 # {{ cookiecutter.project_name }} — pinned toolchain + task runner (https://mise.jdx.dev)
-#
-# `mise install` reads [tools] and installs EXACTLY these versions for this
-# directory (nothing global is touched). `mise run <task>` runs a task with
-# those tools first on PATH, so everyone working here uses the same toolchain.
-#
-# List all tasks:  mise tasks
+# `mise install` installs the [tools] versions for this directory only.
+# List all tasks: mise tasks
 
 [tools]
 node = "{{ cookiecutter.node_version }}"
@@ -13,9 +9,6 @@ go = "{{ cookiecutter.go_version }}"
 
 # ---------- development ----------
 
-# Backend + frontend dev servers start CONCURRENTLY (task deps run in
-# parallel). Frontend on http://localhost:5173 (proxies /api and /live to
-# :8080), backend on :8080. Ctrl-C stops both.
 [tasks.dev]
 description = "Run backend (:8080) + frontend (:5173) dev servers concurrently"
 depends = ["dev:backend", "dev:frontend"]
@@ -46,7 +39,6 @@ run = [
 
 # ---------- quality ----------
 
-# Go tests + frontend tests run in parallel.
 [tasks.test]
 description = "Go tests (race) + frontend tests, in parallel"
 depends = ["test:backend", "test:frontend"]
@@ -58,14 +50,12 @@ run = "go test -race ./cmd/... ./internal/..."
 dir = "web"
 run = "npm ci && npm test"
 
-# golangci-lint + eslint/prettier run in parallel (golangci-lint is pinned in
-# [tools], so unlike the old Makefile it can never silently skip).
 [tasks.lint]
 description = "golangci-lint + eslint/prettier, in parallel"
 depends = ["lint:backend", "lint:frontend"]
 
 [tasks."lint:backend"]
-run = "golangci-lint run ./..."
+run = "golangci-lint run ./cmd/... ./internal/..."
 
 [tasks."lint:frontend"]
 dir = "web"
@@ -82,7 +72,6 @@ run = "gofmt -w ."
 dir = "web"
 run = "npm ci && npm run format"
 
-# lint + test together, for pre-push checks.
 [tasks.check]
 description = "lint + test together (pre-push gate)"
 depends = ["lint", "test"]
