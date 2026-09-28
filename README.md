@@ -7,12 +7,16 @@ the final Docker image is a slim Alpine running as a non-root user.
 ## Usage
 
 ```sh
-pipx install cookiecutter   # or: uv tool install cookiecutter
-cookiecutter gh:i-segura/app-template
+curl https://mise.run | sh          # install mise once
+git clone gh:i-segura/app-template && cd app-template
+mise install                        # pinned cookiecutter + Go + Node for this repo
+mise run render                     # render with defaults into /tmp/app-template-render
 ```
 
-Answer the prompts (or use `--no-input` with defaults) and you get a project
-that builds with one `make build` and runs with one binary.
+Or point cookiecutter at the repo directly (`cookiecutter gh:i-segura/app-template`)
+with any cookiecutter install. Answer the prompts (or use `--no-input` with
+defaults) and you get a project that builds with one `mise run build` and runs
+with one binary.
 
 ## Template variables
 
@@ -22,8 +26,8 @@ that builds with one `make build` and runs with one binary.
 | `project_slug`   | slugified `project_name`                 | Directory, npm package, Docker image name        |
 | `description`    | generic                                  | One-liner for README and the app UI              |
 | `go_module_path` | `github.com/example/<slug>`              | Change to your real repo path after generating   |
-| `node_version`   | `24`                                     | LTS line used in Dockerfile + npm engines        |
-| `go_version`     | `1.26`                                   | Used in go.mod + Dockerfile                      |
+| `node_version`   | `24`                                     | Feeds mise.toml `[tools]` + Dockerfile + npm engines |
+| `go_version`     | `1.26`                                   | Feeds mise.toml `[tools]` + go.mod + Dockerfile   |
 
 Kept intentionally minimal — opinionated extras (databases, auth, CI/CD to a
 registry) belong in the generated project, not the template.
@@ -42,7 +46,10 @@ registry) belong in the generated project, not the template.
   frontend build.
 - **Dockerfile**: 3 stages (node builds frontend → go builds binary →
   alpine + tini, non-root uid 65532, `HEALTHCHECK` on `/live`).
-- **Makefile**: `dev`, `build`, `test`, `lint`, `docker`, `run`, `clean`.
+- **mise**: `mise.toml` pins the toolchain (`[tools]`: Go, Node,
+  golangci-lint) **and** defines all tasks (`[tasks]`: `dev`, `build`, `test`,
+  `lint`, `fmt`, `check`, `docker`, `run`, `clean`). One tool replaces the
+  Makefile *and* the "install these versions yourself" README section.
 - **Quality gates**: `go test` with `httptest` handler tests, Vitest +
   Testing Library example tests, ESLint (flat config) + Prettier,
   golangci-lint v2 config.
@@ -59,16 +66,31 @@ registry) belong in the generated project, not the template.
 - **No database in the template** — every app picks its own storage; the
   README shows where to add one.
 - **Node 24 / Go 1.26** — current LTS/stable lines at template-writing time;
-  both are template variables.
+  both are template variables and both land in the generated `mise.toml`
+  `[tools]`, so the pinned versions are *enforced*, not just documented.
+- **mise over make** — mise is make plus a toolchain manager: `[tools]` pins
+  Go/Node/golangci-lint per directory (`mise install` reproduces the exact
+  environment), `[tasks]` replaces the Makefile, and task `depends` gives
+  free parallelism (`test` runs Go and frontend suites concurrently). One
+  manifest, no drift between "what the README says to install" and "what the
+  CI image has".
 - **Vitest over Jest** — first-class Vite integration, no babel config.
 
 ## Hacking on the template
 
-Render locally to verify changes:
+This repo dogfoods mise: its own `mise.toml` pins cookiecutter plus the same
+Go/Node lines the generated project gets. Verify changes end to end:
+
+```sh
+mise install
+mise run verify    # render + mise run build/test/lint inside the rendered project
+```
+
+Or step by step:
 
 ```sh
 cookiecutter --no-input . -o /tmp/render-test project_name="Demo App"
 cd /tmp/render-test/demo-app
-go build ./... && go test ./...
-cd web && npm ci && npm run build && npm test && npm run lint
+mise trust -y && mise install
+mise run build && mise run test && mise run lint
 ```

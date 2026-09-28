@@ -1,5 +1,5 @@
 // Package ui embeds the built React frontend (web/dist copied here by
-// `make build` / the Dockerfile) so the final Go binary serves the whole app.
+// `mise run build` / the Dockerfile) so the final Go binary serves the whole app.
 package ui
 
 import (

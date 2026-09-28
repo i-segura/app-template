@@ -1,0 +1,105 @@
+# {{ cookiecutter.project_name }} — pinned toolchain + task runner (https://mise.jdx.dev)
+#
+# `mise install` reads [tools] and installs EXACTLY these versions for this
+# directory (nothing global is touched). `mise run <task>` runs a task with
+# those tools first on PATH, so everyone working here uses the same toolchain.
+#
+# List all tasks:  mise tasks
+
+[tools]
+node = "{{ cookiecutter.node_version }}"
+go = "{{ cookiecutter.go_version }}"
+"ubi:golangci/golangci-lint" = "latest"
+
+# ---------- development ----------
+
+# Backend + frontend dev servers start CONCURRENTLY (task deps run in
+# parallel). Frontend on http://localhost:5173 (proxies /api and /live to
+# :8080), backend on :8080. Ctrl-C stops both.
+[tasks.dev]
+description = "Run backend (:8080) + frontend (:5173) dev servers concurrently"
+depends = ["dev:backend", "dev:frontend"]
+
+[tasks."dev:backend"]
+run = "go run ./cmd/app"
+
+[tasks."dev:frontend"]
+depends = ["web-deps"]
+dir = "web"
+run = "npm run dev"
+
+[tasks.web-deps]
+dir = "web"
+run = "npm ci"
+
+# ---------- build ----------
+
+# Frontend build -> internal/ui/dist (go:embed source) -> Go binary.
+[tasks.build]
+description = "Build frontend -> internal/ui/dist -> Go binary (bin/app)"
+run = [
+  "cd web && npm ci && npm run build",
+  "find internal/ui/dist -mindepth 1 ! -name .gitignore -delete",
+  "cp -r web/dist/* internal/ui/dist/",
+  "go build -trimpath -ldflags '-s -w' -o bin/app ./cmd/app",
+]
+
+# ---------- quality ----------
+
+# Go tests + frontend tests run in parallel.
+[tasks.test]
+description = "Go tests (race) + frontend tests, in parallel"
+depends = ["test:backend", "test:frontend"]
+
+[tasks."test:backend"]
+run = "go test -race ./cmd/... ./internal/..."
+
+[tasks."test:frontend"]
+dir = "web"
+run = "npm ci && npm test"
+
+# golangci-lint + eslint/prettier run in parallel (golangci-lint is pinned in
+# [tools], so unlike the old Makefile it can never silently skip).
+[tasks.lint]
+description = "golangci-lint + eslint/prettier, in parallel"
+depends = ["lint:backend", "lint:frontend"]
+
+[tasks."lint:backend"]
+run = "golangci-lint run ./..."
+
+[tasks."lint:frontend"]
+dir = "web"
+run = "npm ci && npm run lint"
+
+[tasks.fmt]
+description = "Format Go + frontend code"
+depends = ["fmt:backend", "fmt:frontend"]
+
+[tasks."fmt:backend"]
+run = "gofmt -w ."
+
+[tasks."fmt:frontend"]
+dir = "web"
+run = "npm ci && npm run format"
+
+# lint + test together, for pre-push checks.
+[tasks.check]
+description = "lint + test together (pre-push gate)"
+depends = ["lint", "test"]
+
+# ---------- container ----------
+
+[tasks.docker]
+description = "Build the single-container image ({{ cookiecutter.project_slug }}:latest)"
+run = "docker build -t {{ cookiecutter.project_slug }}:latest ."
+
+[tasks.run]
+description = "Build the image and run it on :8080"
+depends = ["docker"]
+run = "docker run --rm -p 8080:8080 {{ cookiecutter.project_slug }}:latest"
+
+# ---------- housekeeping ----------
+
+[tasks.clean]
+description = "Remove build artifacts"
+run = "rm -rf bin web/dist internal/ui/dist/assets"

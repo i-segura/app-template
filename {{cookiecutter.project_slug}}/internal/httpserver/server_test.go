@@ -16,7 +16,7 @@ func TestLive(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GET /live: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("status = %d, want 200", resp.StatusCode)
@@ -38,7 +38,7 @@ func TestHello(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GET /api/v1/hello: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("status = %d, want 200", resp.StatusCode)
@@ -60,7 +60,7 @@ func TestUnknownAPIRouteIsJSON404(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GET /api/v1/nope: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusNotFound {
 		t.Fatalf("status = %d, want 404", resp.StatusCode)
@@ -79,7 +79,7 @@ func TestSPAFallbackServesIndex(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GET /some/client/route: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("status = %d, want 200", resp.StatusCode)
