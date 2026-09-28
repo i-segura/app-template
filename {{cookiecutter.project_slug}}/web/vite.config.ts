@@ -2,7 +2,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// Proxy API/health paths to the Go backend dev server.
 export default defineConfig({
   plugins: [react()],
   server: {

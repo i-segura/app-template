@@ -61,6 +61,9 @@ with one binary.
 - mise instead of make: `[tools]` pins the toolchain per directory,
   `[tasks]` defines the commands, `depends` runs tasks in parallel.
 - Vitest for frontend tests: first-class Vite integration.
+- Generated CI uses `actions/setup-go` / `actions/setup-node` reading the
+  pinned versions rather than the mise action, so the pipeline does not
+  depend on mise on GitHub runners.
 
 ## Hacking on the template
 

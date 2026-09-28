@@ -27,7 +27,6 @@ export default tseslint.config(
     },
   },
   {
-    // Test files get vitest globals (describe/it/expect/vi).
     files: ["src/test/**/*.{ts,tsx}"],
     languageOptions: {
       globals: { ...globals.browser, ...globals.vitest },

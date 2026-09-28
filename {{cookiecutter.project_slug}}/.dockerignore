@@ -1,6 +1,3 @@
-# Keep the build context small: node_modules is installed inside the image
-# (npm ci), the frontend is rebuilt in stage 1, and Go embeds from
-# internal/ui/dist (the placeholder must stay in the context).
 .git
 .github
 bin/

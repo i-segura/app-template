@@ -1,6 +1,5 @@
 # syntax=docker/dockerfile:1
 
-# ---------- Stage 1: build the React frontend ----------
 FROM node:{{ cookiecutter.node_version }}-alpine AS web
 WORKDIR /app/web
 COPY web/package.json web/package-lock.json ./
@@ -8,23 +7,20 @@ RUN npm ci
 COPY web/ ./
 RUN npm run build
 
-# ---------- Stage 2: build the Go backend (embeds the frontend) ----------
 FROM golang:{{ cookiecutter.go_version }}-alpine AS build
 RUN apk add --no-cache ca-certificates git
 WORKDIR /src
 COPY go.mod ./
 RUN go mod download
 COPY . .
-# The real frontend build replaces the placeholder so go:embed picks it up.
+# Replaces the committed placeholder so go:embed picks up the real frontend build.
 COPY --from=web /app/web/dist ./internal/ui/dist
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/app ./cmd/app
 
-# ---------- Final: slim non-root image ----------
 FROM alpine:3.21
 RUN apk add --no-cache ca-certificates tini tzdata \
  && adduser -D -u 65532 appuser
 USER appuser
-# Shell-form HEALTHCHECK: $PORT is resolved by the shell at runtime.
 ARG PORT=8080
 ENV PORT=${PORT}
 EXPOSE ${PORT}

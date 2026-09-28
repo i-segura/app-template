@@ -1,5 +1,3 @@
-# Pins cookiecutter plus the Go/Node lines the generated project uses.
-
 [tools]
 python = "3.13"
 "pipx:cookiecutter" = "latest"

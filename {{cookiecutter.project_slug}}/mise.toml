@@ -1,13 +1,7 @@
-# {{ cookiecutter.project_name }} — pinned toolchain + task runner (https://mise.jdx.dev)
-# `mise install` installs the [tools] versions for this directory only.
-# List all tasks: mise tasks
-
 [tools]
 node = "{{ cookiecutter.node_version }}"
 go = "{{ cookiecutter.go_version }}"
 "ubi:golangci/golangci-lint" = "latest"
-
-# ---------- development ----------
 
 [tasks.dev]
 description = "Run backend (:8080) + frontend (:5173) dev servers concurrently"
@@ -25,9 +19,6 @@ run = "npm run dev"
 dir = "web"
 run = "npm ci"
 
-# ---------- build ----------
-
-# Frontend build -> internal/ui/dist (go:embed source) -> Go binary.
 [tasks.build]
 description = "Build frontend -> internal/ui/dist -> Go binary (bin/app)"
 run = [
@@ -36,8 +27,6 @@ run = [
   "cp -r web/dist/* internal/ui/dist/",
   "go build -trimpath -ldflags '-s -w' -o bin/app ./cmd/app",
 ]
-
-# ---------- quality ----------
 
 [tasks.test]
 description = "Go tests (race) + frontend tests, in parallel"
@@ -76,8 +65,6 @@ run = "npm ci && npm run format"
 description = "lint + test together (pre-push gate)"
 depends = ["lint", "test"]
 
-# ---------- container ----------
-
 [tasks.docker]
 description = "Build the single-container image ({{ cookiecutter.project_slug }}:latest)"
 run = "docker build -t {{ cookiecutter.project_slug }}:latest ."
@@ -86,8 +73,6 @@ run = "docker build -t {{ cookiecutter.project_slug }}:latest ."
 description = "Build the image and run it on :8080"
 depends = ["docker"]
 run = "docker run --rm -p 8080:8080 {{ cookiecutter.project_slug }}:latest"
-
-# ---------- housekeeping ----------
 
 [tasks.clean]
 description = "Remove build artifacts"

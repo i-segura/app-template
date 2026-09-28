@@ -26,7 +26,6 @@ func main() {
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 
-	// Start serving in the background so we can wait for a shutdown signal.
 	go func() {
 		logger.Info("server listening", "port", cfg.Port)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -35,7 +34,6 @@ func main() {
 		}
 	}()
 
-	// Wait for SIGINT/SIGTERM, then shut down gracefully (max 15s).
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop
