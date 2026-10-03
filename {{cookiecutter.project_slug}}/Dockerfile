@@ -26,5 +26,4 @@ ENV PORT=${PORT}
 EXPOSE ${PORT}
 HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- "http://127.0.0.1:$PORT/live" || exit 1
 COPY --from=build /out/app /usr/local/bin/app
-ENTRYPOINT ["tini", "--"]
-CMD ["app"]
+ENTRYPOINT ["tini", "--", "/usr/local/bin/app"]
